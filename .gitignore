@@ -3,6 +3,10 @@ data/
 
 # Ignore virtual environment
 .venv/
+new_env/
+
+# For now, ignore logs
+*.log
 
 # DS_Store
 .DS_Store
