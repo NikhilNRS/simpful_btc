@@ -1,0 +1,5187 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "id": "f6f2d880-7c40-4f8b-a3b3-770f6325acb8",
+      "metadata": {},
+      "source": [
+        "# environment check"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 2,
+      "id": "de9f26b0-f880-4148-bb0e-878bb93e0e7c",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "psycopg2: Installed\n",
+            "pandas: Installed\n",
+            "numpy: Installed\n",
+            "matplotlib: Installed\n",
+            "seaborn: Installed\n",
+            "plotly: Installed\n",
+            "sklearn: Installed\n",
+            "xgboost: Installed\n",
+            "nltk: Installed\n",
+            "textblob: Installed\n",
+            "requests: Installed\n"
+          ]
+        },
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/Users/nikhilrazab-sekh/Desktop/simpful_btc/implementation/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ],
+      "source": [
+        "# List of libraries to check\n",
+        "libraries = [\n",
+        "    \"psycopg2\",\n",
+        "    \"pandas\",\n",
+        "    \"numpy\",\n",
+        "    \"matplotlib\",\n",
+        "    \"seaborn\",\n",
+        "    \"plotly\",\n",
+        "    \"sklearn\",  # Note: The package is installed as scikit-learn, but imported as sklearn\n",
+        "    \"xgboost\",\n",
+        "    \"nltk\",\n",
+        "    \"textblob\",\n",
+        "    \"requests\"\n",
+        "]\n",
+        "\n",
+        "# Try importing each library and report its status\n",
+        "for lib in libraries:\n",
+        "    try:\n",
+        "        __import__(lib)\n",
+        "        print(f\"{lib}: Installed\")\n",
+        "    except ImportError as e:\n",
+        "        print(f\"{lib}: Not installed - {str(e)}\")\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "id": "dc97b5dc-8beb-439f-a8b9-a242ffd0cebe",
+      "metadata": {},
+      "source": [
+        "# Get DB connection"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 4,
+      "id": "c0b50c11-5f94-448b-bb7e-cded28ec592f",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Connected to the database successfully\n"
+          ]
+        }
+      ],
+      "source": [
+        "import psycopg2\n",
+        "import psycopg2.extras\n",
+        "\n",
+        "# Adjusted database connection string for psycopg2\n",
+        "DATABASE_URI = \"dbname='cryptovaultdb' user='nikhilrazab-sekh' host='localhost'\"\n",
+        "\n",
+        "def get_db_connection():\n",
+        "    try:\n",
+        "        # Connect to your postgres DB\n",
+        "        conn = psycopg2.connect(DATABASE_URI)\n",
+        "        # Open a cursor to perform database operations\n",
+        "        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)\n",
+        "        print(\"Connected to the database successfully\")\n",
+        "        return conn, cur\n",
+        "    except psycopg2.Error as e:\n",
+        "        print(f\"Unable to connect to the database: {e}\")\n",
+        "        return None, None\n",
+        "\n",
+        "# Get connection and cursor\n",
+        "conn, cur = get_db_connection()\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "id": "abb37851-709b-4151-8a2a-598868e14d1f",
+      "metadata": {},
+      "source": [
+        "# Explore DB"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 6,
+      "id": "f35a7f4d-1fb1-4394-a11d-bc70f1d81114",
+      "metadata": {},
+      "outputs": [
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `alpha_vantage`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `federal_funds_rate_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `federal_funds_rate_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `federal_funds_rate_weekly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `inflation_annual`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `nonfarm_payroll_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `real_gdp_annual`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `real_gdp_per_capita_quarterly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `real_gdp_quarterly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `retail_sales_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `treasury_yield_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `cpi_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `treasury_yield_weekly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `unemployment_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `treasury_yield_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `cpi_semiannual`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `durables_monthly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `coinbase`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `btc_data_6hrs`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **sma_30**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **rsi**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **macd**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `btc_data_15_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **sma_30**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **rsi**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **macd**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `btc_data_15_hourly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **sma_30**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **rsi**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **macd**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `index_alpha_vantage`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `dia_hourly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gold_hourly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gld_hourly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `spy_hourly`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `dia_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gold_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gld_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `spy_daily`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **open**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **high**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **low**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **close**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **volume**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `marketstack`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gold`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **closing_price**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `sp500`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **closing_price**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `djia`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **date**: date"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **closing_price**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `sentiment`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `fear_and_greed_index`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **classification**: character varying"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `news_btc`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **title**: character varying"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **url**: character varying"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **sentiment_score**: double precision"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **sentiment_interpretation**: character varying"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **author**: character varying"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Exploring Schema: `world_bank`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `internet_penetration_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **individuals_using_the_internet_prcnt_of_population**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `inflation_rates_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_id**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_id**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **countryiso3code**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **unit**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **obs_status**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **decimal**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `trade_balance_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `world_bank_economic_indicators_nl`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **gdp_growth_rate**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **inflation_rate**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **unemployment_rate**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **trade_balance**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **foreign_direct_investment**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **internet_penetration**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `tariffs_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **countryiso3code**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **unit**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **obs_status**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **decimal**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `central_bank_policy_rates_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **central_bank_policy_rate_prcnt**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `unemployment_rates_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `remittances_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **personal_remittances_received_prcnt_of_gdp**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `gdp_growth_rates_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **gdp_growth_annual_prcnt**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `stock_market_indices_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **countryiso3code**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **unit**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **obs_status**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **decimal**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `mobile_cellular_subscriptions_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **mobile_cellular_subscriptions_per_100_people**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `total_public_debt_gdp_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **countryiso3code**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **unit**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **obs_status**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **decimal**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `trade_in_services_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country_value**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `world_bank_economic_indicators_usa_preprocessed`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **value**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `domestic_credit_private_sector_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **domestic_credit_to_private_sector_prcnt_of_gdp**: numeric"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "#### Table: `foreign_direct_investment_usa_cleaned`"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **id**: integer"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **indicator**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **country**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **countryiso3code**: text"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **timestamp**: timestamp without time zone"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "- **fdi_net_inflows_bop_current_usd**: bigint"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "---"
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Database Connection Closed."
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        },
+        {
+          "data": {
+            "text/markdown": [
+              "### Database Structure Saved to `.db_structure/db_structure.json`."
+            ],
+            "text/plain": [
+              "<IPython.core.display.Markdown object>"
+            ]
+          },
+          "metadata": {},
+          "output_type": "display_data"
+        }
+      ],
+      "source": [
+        "from IPython.display import display, Markdown\n",
+        "import psycopg2\n",
+        "import psycopg2.extras\n",
+        "import json\n",
+        "import os\n",
+        "\n",
+        "# Database connection parameters\n",
+        "DATABASE_URI = \"dbname='cryptovaultdb' user='nikhilrazab-sekh' host='localhost'\"\n",
+        "\n",
+        "# Schemas of interest\n",
+        "schemas_of_interest = [\n",
+        "    'alpha_vantage',\n",
+        "    'coinbase',\n",
+        "    'index_alpha_vantage',\n",
+        "    'marketstack',\n",
+        "    'sentiment',\n",
+        "    'world_bank'\n",
+        "]\n",
+        "\n",
+        "def explore_db_schemas_and_save(schemas):\n",
+        "    db_structure = {}  # Dictionary to hold database structure\n",
+        "    \n",
+        "    try:\n",
+        "        conn = psycopg2.connect(DATABASE_URI)\n",
+        "        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)\n",
+        "\n",
+        "        for schema in schemas:\n",
+        "            display(Markdown(f\"### Exploring Schema: `{schema}`\"))\n",
+        "            db_structure[schema] = {}  # Initialize schema in the dictionary\n",
+        "            \n",
+        "            cur.execute(f\"\"\"\n",
+        "                SELECT table_name\n",
+        "                FROM information_schema.tables\n",
+        "                WHERE table_schema = '{schema}'\n",
+        "            \"\"\")\n",
+        "            tables = cur.fetchall()\n",
+        "            \n",
+        "            if not tables:\n",
+        "                display(Markdown(\"#### No Tables Found in this Schema.\"))\n",
+        "                continue\n",
+        "\n",
+        "            for table in tables:\n",
+        "                table_name = table[0]\n",
+        "                display(Markdown(f\"#### Table: `{table_name}`\"))\n",
+        "                db_structure[schema][table_name] = []  # Initialize table list\n",
+        "                \n",
+        "                # Fetch columns for the table\n",
+        "                cur.execute(f\"\"\"\n",
+        "                    SELECT column_name, data_type\n",
+        "                    FROM information_schema.columns\n",
+        "                    WHERE table_schema = '{schema}' AND table_name = '{table_name}'\n",
+        "                \"\"\")\n",
+        "                columns = cur.fetchall()\n",
+        "                \n",
+        "                for column in columns:\n",
+        "                    column_info = {column['column_name']: column['data_type']}\n",
+        "                    db_structure[schema][table_name].append(column_info)\n",
+        "                    display(Markdown(f\"- **{column['column_name']}**: {column['data_type']}\"))\n",
+        "                display(Markdown(\"---\"))  # Separator line\n",
+        "\n",
+        "    except psycopg2.Error as e:\n",
+        "        display(Markdown(f\"**Error**: Unable to connect to the database - {e}\"))\n",
+        "    finally:\n",
+        "        if conn:\n",
+        "            cur.close()\n",
+        "            conn.close()\n",
+        "            display(Markdown(\"### Database Connection Closed.\"))\n",
+        "\n",
+        "    # Create .db_structure directory if it doesn't exist\n",
+        "    os.makedirs('.db_structure', exist_ok=True)\n",
+        "    \n",
+        "    # Write the database structure to a JSON file\n",
+        "    with open('.db_structure/db_structure.json', 'w') as f:\n",
+        "        json.dump(db_structure, f, indent=4)\n",
+        "        \n",
+        "    display(Markdown(\"### Database Structure Saved to `.db_structure/db_structure.json`.\"))\n",
+        "\n",
+        "explore_db_schemas_and_save(schemas_of_interest)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 7,
+      "id": "b5beb9b1-c4b1-4967-b957-dc1d758ef346",
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "# Dataset creation"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 8,
+      "id": "83406534-a4a3-4b04-b8b1-74c7c8a913c0",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/2466023780.py:69: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.\n",
+            "  btc_data_df = pd.read_sql_query(query, conn)\n"
+          ]
+        },
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "            timestamp     low    high    open   close      volume      sma_30  \\\n",
+            "0 2015-07-22 02:00:00  276.01  276.89  276.56  276.42  166.841611  279.333667   \n",
+            "1 2015-07-22 03:00:00  276.21  277.16  276.58  276.91  241.774294  279.297333   \n",
+            "2 2015-07-22 04:00:00  276.31  276.95  276.85  276.40  171.778578  279.239333   \n",
+            "3 2015-07-22 05:00:00  275.51  276.81  276.38  275.81  229.820689  279.099667   \n",
+            "4 2015-07-22 06:00:00  275.01  276.79  275.74  276.04  307.507227  278.938000   \n",
+            "\n",
+            "         rsi      macd  dia_open  ...  spy_volume  federal_funds_rate_daily  \\\n",
+            "0  24.211767 -0.510280       NaN  ...         NaN                       NaN   \n",
+            "1  32.886011 -0.578152       NaN  ...         NaN                       NaN   \n",
+            "2  28.911993 -0.665423       NaN  ...      6200.0                       NaN   \n",
+            "3  24.896118 -0.773281       NaN  ...     21100.0                       NaN   \n",
+            "4  29.312518 -0.830624   149.183  ...     89014.0                       NaN   \n",
+            "\n",
+            "   treasury_yield_daily  cpi_monthly  durables_monthly  \\\n",
+            "0                   NaN          NaN               NaN   \n",
+            "1                   NaN          NaN               NaN   \n",
+            "2                   NaN          NaN               NaN   \n",
+            "3                   NaN          NaN               NaN   \n",
+            "4                   NaN          NaN               NaN   \n",
+            "\n",
+            "   nonfarm_payroll_monthly  real_gdp_per_capita_quarterly  real_gdp_quarterly  \\\n",
+            "0                      NaN                            NaN                 NaN   \n",
+            "1                      NaN                            NaN                 NaN   \n",
+            "2                      NaN                            NaN                 NaN   \n",
+            "3                      NaN                            NaN                 NaN   \n",
+            "4                      NaN                            NaN                 NaN   \n",
+            "\n",
+            "   retail_sales_monthly  unemployment_monthly  \n",
+            "0                   NaN                   NaN  \n",
+            "1                   NaN                   NaN  \n",
+            "2                   NaN                   NaN  \n",
+            "3                   NaN                   NaN  \n",
+            "4                   NaN                   NaN  \n",
+            "\n",
+            "[5 rows x 33 columns]\n",
+            "['timestamp', 'low', 'high', 'open', 'close', 'volume', 'sma_30', 'rsi', 'macd', 'dia_open', 'dia_high', 'dia_low', 'dia_close', 'dia_volume', 'gld_open', 'gld_high', 'gld_low', 'gld_close', 'gld_volume', 'spy_open', 'spy_high', 'spy_low', 'spy_close', 'spy_volume', 'federal_funds_rate_daily', 'treasury_yield_daily', 'cpi_monthly', 'durables_monthly', 'nonfarm_payroll_monthly', 'real_gdp_per_capita_quarterly', 'real_gdp_quarterly', 'retail_sales_monthly', 'unemployment_monthly']\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "import psycopg2\n",
+        "\n",
+        "# Database connection parameters\n",
+        "conn_params = {\n",
+        "    \"dbname\": 'cryptovaultdb',\n",
+        "    \"user\": 'nikhilrazab-sekh',\n",
+        "    \"host\": 'localhost'\n",
+        "}\n",
+        "\n",
+        "# Connect to the database\n",
+        "conn = psycopg2.connect(**conn_params)\n",
+        "\n",
+        "# Extended SQL query to include alpha_vantage tables\n",
+        "query = \"\"\"\n",
+        "WITH btc_base AS (\n",
+        "  SELECT timestamp, low, high, open, close, volume, sma_30, rsi, macd\n",
+        "  FROM coinbase.btc_data_15_hourly\n",
+        "), combined AS (\n",
+        "  SELECT btc_base.*,\n",
+        "         dia.open as dia_open, dia.high as dia_high, dia.low as dia_low, dia.close as dia_close, dia.volume as dia_volume,\n",
+        "         gld.open as gld_open, gld.high as gld_high, gld.low as gld_low, gld.close as gld_close, gld.volume as gld_volume,\n",
+        "         spy.open as spy_open, spy.high as spy_high, spy.low as spy_low, spy.close as spy_close, spy.volume as spy_volume,\n",
+        "         ffdr.value as federal_funds_rate_daily,\n",
+        "         tyd.value as treasury_yield_daily,\n",
+        "         cpm.value as cpi_monthly,\n",
+        "         dm.value as durables_monthly,\n",
+        "         nfp.value as nonfarm_payroll_monthly,\n",
+        "         rgdpcq.value as real_gdp_per_capita_quarterly,\n",
+        "         rgdq.value as real_gdp_quarterly,\n",
+        "         rsm.value as retail_sales_monthly,\n",
+        "         um.value as unemployment_monthly\n",
+        "  FROM btc_base\n",
+        "  LEFT JOIN index_alpha_vantage.dia_hourly as dia ON btc_base.timestamp = dia.timestamp\n",
+        "  LEFT JOIN index_alpha_vantage.gld_hourly as gld ON btc_base.timestamp = gld.timestamp\n",
+        "  LEFT JOIN index_alpha_vantage.spy_hourly as spy ON btc_base.timestamp = spy.timestamp\n",
+        "  LEFT JOIN alpha_vantage.federal_funds_rate_daily as ffdr ON btc_base.timestamp = ffdr.timestamp\n",
+        "  LEFT JOIN alpha_vantage.treasury_yield_daily as tyd ON btc_base.timestamp = tyd.timestamp\n",
+        "  LEFT JOIN alpha_vantage.cpi_monthly as cpm ON btc_base.timestamp = cpm.timestamp\n",
+        "  LEFT JOIN alpha_vantage.durables_monthly as dm ON btc_base.timestamp = dm.timestamp\n",
+        "  LEFT JOIN alpha_vantage.nonfarm_payroll_monthly as nfp ON btc_base.timestamp = nfp.timestamp\n",
+        "  LEFT JOIN alpha_vantage.real_gdp_per_capita_quarterly as rgdpcq ON btc_base.timestamp = rgdpcq.timestamp\n",
+        "  LEFT JOIN alpha_vantage.real_gdp_quarterly as rgdq ON btc_base.timestamp = rgdq.timestamp\n",
+        "  LEFT JOIN alpha_vantage.retail_sales_monthly as rsm ON btc_base.timestamp = rsm.timestamp\n",
+        "  LEFT JOIN alpha_vantage.unemployment_monthly as um ON btc_base.timestamp = um.timestamp\n",
+        "  LEFT JOIN world_bank.central_bank_policy_rates_usa_cleaned as cbr ON btc_base.timestamp = cbr.timestamp\n",
+        "  LEFT JOIN world_bank.domestic_credit_private_sector_usa_cleaned as dcps ON btc_base.timestamp = dcps.timestamp\n",
+        "  LEFT JOIN world_bank.foreign_direct_investment_usa_cleaned as fdi ON btc_base.timestamp = fdi.timestamp\n",
+        "  LEFT JOIN world_bank.gdp_growth_rates_usa_cleaned as gdp_gr ON btc_base.timestamp = gdp_gr.timestamp\n",
+        "  LEFT JOIN world_bank.inflation_rates_usa_cleaned as infl ON btc_base.timestamp = infl.timestamp\n",
+        "  LEFT JOIN world_bank.internet_penetration_usa_cleaned as inet_pen ON btc_base.timestamp = inet_pen.timestamp\n",
+        "  LEFT JOIN world_bank.mobile_cellular_subscriptions_usa_cleaned as mcs ON btc_base.timestamp = mcs.timestamp\n",
+        "  LEFT JOIN world_bank.remittances_usa_cleaned as remit ON btc_base.timestamp = remit.timestamp\n",
+        "  LEFT JOIN world_bank.stock_market_indices_usa_cleaned as smi ON btc_base.timestamp = smi.timestamp\n",
+        "  LEFT JOIN world_bank.tariffs_usa_cleaned as tariffs ON btc_base.timestamp = tariffs.timestamp\n",
+        "  LEFT JOIN world_bank.total_public_debt_gdp_usa_cleaned as tpdg ON btc_base.timestamp = tpdg.timestamp\n",
+        "  LEFT JOIN world_bank.trade_balance_usa_cleaned as tb ON btc_base.timestamp = tb.timestamp\n",
+        "  LEFT JOIN world_bank.trade_in_services_usa_cleaned as tis ON btc_base.timestamp = tis.timestamp\n",
+        "  LEFT JOIN world_bank.unemployment_rates_usa_cleaned as ur ON btc_base.timestamp = ur.timestamp\n",
+        "\n",
+        ")\n",
+        "SELECT *\n",
+        "FROM combined;\n",
+        "\n",
+        "\n",
+        "\"\"\"\n",
+        "\n",
+        "# Load the SQL query results into a pandas DataFrame\n",
+        "btc_data_df = pd.read_sql_query(query, conn)\n",
+        "\n",
+        "# Close the database connection\n",
+        "conn.close()\n",
+        "\n",
+        "# Display the first few rows of the DataFrame\n",
+        "print(btc_data_df.head())\n",
+        "\n",
+        "# Print all column names from the DataFrame\n",
+        "print(list(btc_data_df.columns))\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "id": "75cd9c86-1c24-4050-974d-fcea92a15ac4",
+      "metadata": {},
+      "source": [
+        "# Inspect world data tables"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 10,
+      "id": "05e3d3ab-59be-424e-9a2b-a9173cd8e438",
+      "metadata": {},
+      "outputs": [],
+      "source": [
+        "import pandas as pd\n",
+        "import psycopg2\n",
+        "\n",
+        "# Database connection parameters\n",
+        "conn_params = {\n",
+        "    \"dbname\": 'cryptovaultdb',\n",
+        "    \"user\": 'nikhilrazab-sekh',\n",
+        "    \"host\": 'localhost'\n",
+        "}\n",
+        "\n",
+        "# Connect to the database\n",
+        "conn = psycopg2.connect(**conn_params)\n",
+        "\n",
+        "# List of tables from the world_bank schema to include\n",
+        "tables = [\n",
+        "    \"central_bank_policy_rates_usa_cleaned\",\n",
+        "    \"domestic_credit_private_sector_usa_cleaned\",\n",
+        "    \"foreign_direct_investment_usa_cleaned\",\n",
+        "    \"gdp_growth_rates_usa_cleaned\",\n",
+        "    \"inflation_rates_usa_cleaned\",\n",
+        "    \"internet_penetration_usa_cleaned\",\n",
+        "    \"mobile_cellular_subscriptions_usa_cleaned\",\n",
+        "    \"remittances_usa_cleaned\",\n",
+        "    \"stock_market_indices_usa_cleaned\",\n",
+        "    \"tariffs_usa_cleaned\",\n",
+        "    \"total_public_debt_gdp_usa_cleaned\",\n",
+        "    \"trade_balance_usa_cleaned\",\n",
+        "    \"trade_in_services_usa_cleaned\",\n",
+        "    \"unemployment_rates_usa_cleaned\"\n",
+        "]\n",
+        "\n",
+        "# Dictionary to hold table names, columns, and first row values\n",
+        "table_info = {\n",
+        "    \"Table Name\": [],\n",
+        "    \"Columns\": [],\n",
+        "    \"First Row\": []\n",
+        "}\n",
+        "\n",
+        "# Iterate through the tables and fetch column names and the first row values\n",
+        "for table in tables:\n",
+        "    # Fetch column names\n",
+        "    with conn.cursor() as cursor:\n",
+        "        cursor.execute(f\"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}'\")\n",
+        "        columns = [row[0] for row in cursor.fetchall()]\n",
+        "\n",
+        "    # Fetch first row values\n",
+        "    with conn.cursor() as cursor:\n",
+        "        cursor.execute(f\"SELECT * FROM world_bank.{table} LIMIT 1\")\n",
+        "        first_row = cursor.fetchone()\n",
+        "\n",
+        "    # Append table name, columns, and first row values to the dictionary\n",
+        "    table_info[\"Table Name\"].append(table)\n",
+        "    table_info[\"Columns\"].append(', '.join(columns))\n",
+        "    table_info[\"First Row\"].append(', '.join([str(value) for value in first_row]))\n",
+        "\n",
+        "# Convert the dictionary to a DataFrame\n",
+        "df = pd.DataFrame(table_info)\n",
+        "\n",
+        "# Export the DataFrame to a CSV file\n",
+        "df.to_csv(\"world_bank_tables_columns_first_row.csv\", index=False)\n",
+        "\n",
+        "# Close the database connection\n",
+        "conn.close()\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 11,
+      "id": "543180b5-c5ac-41c9-a6ad-9d4fba7ffba9",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "  cbr_timestamp  central_bank_policy_rate_prcnt  domestic_credit_gdp  \\\n",
+            "0    2015-01-01                        2.237075           180.732080   \n",
+            "1    2016-01-01                        2.484530           183.644222   \n",
+            "2    2017-01-01                        2.156099           191.630055   \n",
+            "3    2018-01-01                        2.441415           180.461848   \n",
+            "4    2019-01-01                        3.427090           191.241255   \n",
+            "\n",
+            "   foreign_direct_investment_value  gdp_growth_annual_prcnt  \\\n",
+            "0                     5.114340e+11                 2.706370   \n",
+            "1                     4.743880e+11                 1.667472   \n",
+            "2                     3.808230e+11                 2.241921   \n",
+            "3                     2.147150e+11                 2.945385   \n",
+            "4                     3.159840e+11                 2.294439   \n",
+            "\n",
+            "   inflation_rate_value  individuals_using_the_internet_prcnt_of_population  \\\n",
+            "0              0.118627                                          74.554202    \n",
+            "1              1.261583                                          85.544421    \n",
+            "2              2.130110                                          87.274889    \n",
+            "3              2.442583                                          88.498903    \n",
+            "4              1.812210                                          89.430285    \n",
+            "\n",
+            "   mobile_cellular_subscriptions_per_100_people  \\\n",
+            "0                                    102.308393   \n",
+            "1                                    103.370250   \n",
+            "2                                    103.129789   \n",
+            "3                                    104.847944   \n",
+            "4                                    106.414019   \n",
+            "\n",
+            "   personal_remittances_received_prcnt_of_gdp  stock_market_index_value  \\\n",
+            "0                                    0.036131                 -0.726602   \n",
+            "1                                    0.033859                  9.535016   \n",
+            "2                                    0.032587                 19.419965   \n",
+            "3                                    0.033804                 -6.237260   \n",
+            "4                                    0.032969                 28.878069   \n",
+            "\n",
+            "   tariffs_value  total_public_debt_gdp_value  trade_balance_value  \\\n",
+            "0           2.80                    96.425228        -5.243200e+11   \n",
+            "1           2.76                    98.504102        -5.032720e+11   \n",
+            "2           3.36                    97.692936        -5.433290e+11   \n",
+            "3           3.25                    99.060976        -5.930770e+11   \n",
+            "4           8.70                   100.805042        -5.785040e+11   \n",
+            "\n",
+            "   trade_in_services_value  unemployment_rate_value  \n",
+            "0                 6.963153                     5.28  \n",
+            "1                 6.935075                     4.87  \n",
+            "2                 7.149545                     4.36  \n",
+            "3                 6.968967                     3.90  \n",
+            "4                 6.943074                     3.67  \n"
+          ]
+        },
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/3410262971.py:53: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.\n",
+            "  df = pd.read_sql_query(query, conn)\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "import psycopg2\n",
+        "\n",
+        "# Database connection parameters\n",
+        "conn_params = {\n",
+        "    \"dbname\": 'cryptovaultdb',\n",
+        "    \"user\": 'nikhilrazab-sekh',\n",
+        "    \"host\": 'localhost'\n",
+        "}\n",
+        "\n",
+        "# Connect to the database\n",
+        "conn = psycopg2.connect(**conn_params)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "WITH world_bank_combined AS (\n",
+        "  SELECT\n",
+        "    cbr.timestamp AS cbr_timestamp,\n",
+        "    cbr.central_bank_policy_rate_prcnt,\n",
+        "    dcps.domestic_credit_to_private_sector_prcnt_of_gdp AS domestic_credit_gdp, -- Corrected column name\n",
+        "    fdi.fdi_net_inflows_bop_current_usd AS foreign_direct_investment_value,\n",
+        "    gdp_gr.gdp_growth_annual_prcnt,\n",
+        "    infl.value AS inflation_rate_value,\n",
+        "    inet_pen.individuals_using_the_internet_prcnt_of_population,\n",
+        "    mcs.mobile_cellular_subscriptions_per_100_people,\n",
+        "    remit.personal_remittances_received_prcnt_of_gdp,\n",
+        "    smi.value AS stock_market_index_value,\n",
+        "    tariffs.value AS tariffs_value,\n",
+        "    tpdg.value AS total_public_debt_gdp_value,\n",
+        "    tb.value AS trade_balance_value,\n",
+        "    tis.value AS trade_in_services_value,\n",
+        "    ur.value AS unemployment_rate_value\n",
+        "  FROM world_bank.central_bank_policy_rates_usa_cleaned AS cbr\n",
+        "  FULL JOIN world_bank.domestic_credit_private_sector_usa_cleaned AS dcps ON cbr.timestamp = dcps.timestamp\n",
+        "  FULL JOIN world_bank.foreign_direct_investment_usa_cleaned AS fdi ON cbr.timestamp = fdi.timestamp\n",
+        "  FULL JOIN world_bank.gdp_growth_rates_usa_cleaned AS gdp_gr ON cbr.timestamp = gdp_gr.timestamp\n",
+        "  FULL JOIN world_bank.inflation_rates_usa_cleaned AS infl ON cbr.timestamp = infl.timestamp\n",
+        "  FULL JOIN world_bank.internet_penetration_usa_cleaned AS inet_pen ON cbr.timestamp = inet_pen.timestamp\n",
+        "  FULL JOIN world_bank.mobile_cellular_subscriptions_usa_cleaned AS mcs ON cbr.timestamp = mcs.timestamp\n",
+        "  FULL JOIN world_bank.remittances_usa_cleaned AS remit ON cbr.timestamp = remit.timestamp\n",
+        "  FULL JOIN world_bank.stock_market_indices_usa_cleaned AS smi ON cbr.timestamp = smi.timestamp\n",
+        "  FULL JOIN world_bank.tariffs_usa_cleaned AS tariffs ON cbr.timestamp = tariffs.timestamp\n",
+        "  FULL JOIN world_bank.total_public_debt_gdp_usa_cleaned AS tpdg ON cbr.timestamp = tpdg.timestamp\n",
+        "  FULL JOIN world_bank.trade_balance_usa_cleaned AS tb ON cbr.timestamp = tb.timestamp\n",
+        "  FULL JOIN world_bank.trade_in_services_usa_cleaned AS tis ON cbr.timestamp = tis.timestamp\n",
+        "  FULL JOIN world_bank.unemployment_rates_usa_cleaned AS ur ON cbr.timestamp = ur.timestamp\n",
+        ")\n",
+        "SELECT *\n",
+        "FROM world_bank_combined;\n",
+        "\n",
+        "\"\"\"\n",
+        "\n",
+        "# Execute the SQL query and load into a DataFrame\n",
+        "df = pd.read_sql_query(query, conn)\n",
+        "\n",
+        "# Close the database connection\n",
+        "conn.close()\n",
+        "\n",
+        "# Display the first few rows of the DataFrame\n",
+        "print(df.head())\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "id": "1c4c5851-652c-4a4d-94c5-7e026149c339",
+      "metadata": {},
+      "source": [
+        "## Join worldbank data using Pandas"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 13,
+      "id": "868fd41a-066b-4937-aaa6-38fc6d56c367",
+      "metadata": {
+        "scrolled": true
+      },
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "            timestamp     low    high    open   close      volume      sma_30  \\\n",
+            "0 2015-07-22 02:00:00  276.01  276.89  276.56  276.42  166.841611  279.333667   \n",
+            "1 2015-07-22 03:00:00  276.21  277.16  276.58  276.91  241.774294  279.297333   \n",
+            "2 2015-07-22 04:00:00  276.31  276.95  276.85  276.40  171.778578  279.239333   \n",
+            "3 2015-07-22 05:00:00  275.51  276.81  276.38  275.81  229.820689  279.099667   \n",
+            "4 2015-07-22 06:00:00  275.01  276.79  275.74  276.04  307.507227  278.938000   \n",
+            "\n",
+            "         rsi      macd  dia_open  ...  inflation_rate_value  \\\n",
+            "0  24.211767 -0.510280       NaN  ...                   NaN   \n",
+            "1  32.886011 -0.578152       NaN  ...                   NaN   \n",
+            "2  28.911993 -0.665423       NaN  ...                   NaN   \n",
+            "3  24.896118 -0.773281       NaN  ...                   NaN   \n",
+            "4  29.312518 -0.830624   149.183  ...                   NaN   \n",
+            "\n",
+            "   individuals_using_the_internet_prcnt_of_population  \\\n",
+            "0                                                NaN    \n",
+            "1                                                NaN    \n",
+            "2                                                NaN    \n",
+            "3                                                NaN    \n",
+            "4                                                NaN    \n",
+            "\n",
+            "   mobile_cellular_subscriptions_per_100_people  \\\n",
+            "0                                           NaN   \n",
+            "1                                           NaN   \n",
+            "2                                           NaN   \n",
+            "3                                           NaN   \n",
+            "4                                           NaN   \n",
+            "\n",
+            "   personal_remittances_received_prcnt_of_gdp  stock_market_index_value  \\\n",
+            "0                                         NaN                       NaN   \n",
+            "1                                         NaN                       NaN   \n",
+            "2                                         NaN                       NaN   \n",
+            "3                                         NaN                       NaN   \n",
+            "4                                         NaN                       NaN   \n",
+            "\n",
+            "   tariffs_value  total_public_debt_gdp_value  trade_balance_value  \\\n",
+            "0            NaN                          NaN                  NaN   \n",
+            "1            NaN                          NaN                  NaN   \n",
+            "2            NaN                          NaN                  NaN   \n",
+            "3            NaN                          NaN                  NaN   \n",
+            "4            NaN                          NaN                  NaN   \n",
+            "\n",
+            "   trade_in_services_value  unemployment_rate_value  \n",
+            "0                      NaN                      NaN  \n",
+            "1                      NaN                      NaN  \n",
+            "2                      NaN                      NaN  \n",
+            "3                      NaN                      NaN  \n",
+            "4                      NaN                      NaN  \n",
+            "\n",
+            "[5 rows x 47 columns]\n",
+            "['timestamp', 'low', 'high', 'open', 'close', 'volume', 'sma_30', 'rsi', 'macd', 'dia_open', 'dia_high', 'dia_low', 'dia_close', 'dia_volume', 'gld_open', 'gld_high', 'gld_low', 'gld_close', 'gld_volume', 'spy_open', 'spy_high', 'spy_low', 'spy_close', 'spy_volume', 'federal_funds_rate_daily', 'treasury_yield_daily', 'cpi_monthly', 'durables_monthly', 'nonfarm_payroll_monthly', 'real_gdp_per_capita_quarterly', 'real_gdp_quarterly', 'retail_sales_monthly', 'unemployment_monthly', 'central_bank_policy_rate_prcnt', 'domestic_credit_gdp', 'foreign_direct_investment_value', 'gdp_growth_annual_prcnt', 'inflation_rate_value', 'individuals_using_the_internet_prcnt_of_population', 'mobile_cellular_subscriptions_per_100_people', 'personal_remittances_received_prcnt_of_gdp', 'stock_market_index_value', 'tariffs_value', 'total_public_debt_gdp_value', 'trade_balance_value', 'trade_in_services_value', 'unemployment_rate_value']\n"
+          ]
+        }
+      ],
+      "source": [
+        "# Ensure timestamp format consistency\n",
+        "btc_data_df['timestamp'] = pd.to_datetime(btc_data_df['timestamp'])\n",
+        "df['cbr_timestamp'] = pd.to_datetime(df['cbr_timestamp'])\n",
+        "\n",
+        "# Rename the `cbr_timestamp` column in Script 2's DataFrame for clarity\n",
+        "df.rename(columns={'cbr_timestamp': 'timestamp'}, inplace=True)\n",
+        "\n",
+        "# Perform the left join\n",
+        "merged_df = pd.merge(btc_data_df, df, on='timestamp', how='left')\n",
+        "\n",
+        "# Display the first few rows of the merged DataFrame\n",
+        "print(merged_df.head())\n",
+        "\n",
+        "# Print all column names from the merged DataFrame\n",
+        "print(list(merged_df.columns))"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 14,
+      "id": "74eb3b63-b4dc-46f1-9128-9be45f03794c",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Fear and Greed Index DataFrame:\n",
+            "            timestamp  value classification\n",
+            "0 2024-02-25 01:00:00     74          Greed\n",
+            "1 2024-02-24 01:00:00     72          Greed\n",
+            "2 2024-02-23 01:00:00     76  Extreme Greed\n",
+            "3 2024-02-22 01:00:00     74          Greed\n",
+            "4 2024-02-21 01:00:00     78  Extreme Greed\n",
+            "\n",
+            "News BTC DataFrame:\n",
+            "   id                                              title  \\\n",
+            "0   1  This Week on Crypto Twitter: Did SBF Move Mone...   \n",
+            "1   2  Cryptocurrencies Like Bitcoin And Ethereum Can...   \n",
+            "2   3  SBF sent home and Binance gets Voyager assets:...   \n",
+            "3   4  Barrons Top Weekend Stock Picks: Tesla, Bed Ba...   \n",
+            "4   5  Charlie Munger Says Crypto Is Good For Kidnapp...   \n",
+            "\n",
+            "                                                 url  sentiment_score  \\\n",
+            "0  https://decrypt.co/118207/this-week-in-crypto-...        -0.140881   \n",
+            "1  https://www.benzinga.com/markets/cryptocurrenc...         0.004942   \n",
+            "2  https://cointelegraph.com/magazine/sbf-enter-p...        -0.152923   \n",
+            "3  https://www.benzinga.com/news/large-cap/22/12/...         0.071315   \n",
+            "4  https://www.benzinga.com/markets/cryptocurrenc...        -0.179377   \n",
+            "\n",
+            "  sentiment_interpretation             author           timestamp  \n",
+            "0                  Neutral  Decrypt Tim Hakki 2022-12-31 21:59:17  \n",
+            "1                  Neutral   Murtuza Merchant 2022-12-31 21:52:01  \n",
+            "2         Somewhat-Bearish    Editorial Staff 2022-12-31 20:48:34  \n",
+            "3                  Neutral      Michael Cohen 2022-12-31 20:48:20  \n",
+            "4         Somewhat-Bearish        Adam Eckert 2022-12-31 19:19:00  \n"
+          ]
+        },
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/3256168890.py:20: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.\n",
+            "  df_fear_and_greed_index = pd.read_sql(fear_and_greed_index_query, conn)\n",
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/3256168890.py:21: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.\n",
+            "  df_news_btc = pd.read_sql(news_btc_query, conn)\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "import psycopg2\n",
+        "\n",
+        "# Database connection parameters\n",
+        "conn_params = {\n",
+        "    \"dbname\": 'cryptovaultdb',\n",
+        "    \"user\": 'nikhilrazab-sekh',\n",
+        "    \"host\": 'localhost'\n",
+        "}\n",
+        "\n",
+        "# Connect to the database\n",
+        "conn = psycopg2.connect(**conn_params)\n",
+        "\n",
+        "# Query to load fear_and_greed_index table\n",
+        "fear_and_greed_index_query = \"SELECT * FROM sentiment.fear_and_greed_index;\"\n",
+        "# Query to load news_btc table\n",
+        "news_btc_query = \"SELECT * FROM sentiment.news_btc;\"\n",
+        "\n",
+        "# Load the data into pandas DataFrames\n",
+        "df_fear_and_greed_index = pd.read_sql(fear_and_greed_index_query, conn)\n",
+        "df_news_btc = pd.read_sql(news_btc_query, conn)\n",
+        "\n",
+        "# Close the connection\n",
+        "conn.close()\n",
+        "\n",
+        "# Display the first few rows of each DataFrame as a check\n",
+        "print(\"Fear and Greed Index DataFrame:\")\n",
+        "print(df_fear_and_greed_index.head())\n",
+        "\n",
+        "print(\"\\nNews BTC DataFrame:\")\n",
+        "print(df_news_btc.head())\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 19,
+      "id": "0d9fc1e7-dcae-459f-835e-7359f6fe5768",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Number of articles per month:\n",
+            "year_month\n",
+            "2022-12    733\n",
+            "2023-12    700\n",
+            "Freq: M, dtype: int64\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "# Convert 'timestamp' column to datetime\n",
+        "df_news_btc['timestamp'] = pd.to_datetime(df_news_btc['timestamp'])\n",
+        "\n",
+        "# Extract year and month into a new column\n",
+        "df_news_btc['year_month'] = df_news_btc['timestamp'].dt.to_period('M')\n",
+        "\n",
+        "# Count the number of articles per month\n",
+        "articles_per_month = df_news_btc.groupby('year_month').size()\n",
+        "\n",
+        "# Print the result\n",
+        "print(\"Number of articles per month:\")\n",
+        "print(articles_per_month)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 15,
+      "id": "5f02a5a4-432e-490a-be7b-928f8c5c7ea7",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "            timestamp     low    high    open   close      volume      sma_30  \\\n",
+            "0 2015-07-22 02:00:00  276.01  276.89  276.56  276.42  166.841611  279.333667   \n",
+            "1 2015-07-22 03:00:00  276.21  277.16  276.58  276.91  241.774294  279.297333   \n",
+            "2 2015-07-22 04:00:00  276.31  276.95  276.85  276.40  171.778578  279.239333   \n",
+            "3 2015-07-22 05:00:00  275.51  276.81  276.38  275.81  229.820689  279.099667   \n",
+            "4 2015-07-22 06:00:00  275.01  276.79  275.74  276.04  307.507227  278.938000   \n",
+            "\n",
+            "         rsi      macd  dia_open  ...  \\\n",
+            "0  24.211767 -0.510280       NaN  ...   \n",
+            "1  32.886011 -0.578152       NaN  ...   \n",
+            "2  28.911993 -0.665423       NaN  ...   \n",
+            "3  24.896118 -0.773281       NaN  ...   \n",
+            "4  29.312518 -0.830624   149.183  ...   \n",
+            "\n",
+            "   mobile_cellular_subscriptions_per_100_people  \\\n",
+            "0                                           NaN   \n",
+            "1                                           NaN   \n",
+            "2                                           NaN   \n",
+            "3                                           NaN   \n",
+            "4                                           NaN   \n",
+            "\n",
+            "   personal_remittances_received_prcnt_of_gdp  stock_market_index_value  \\\n",
+            "0                                         NaN                       NaN   \n",
+            "1                                         NaN                       NaN   \n",
+            "2                                         NaN                       NaN   \n",
+            "3                                         NaN                       NaN   \n",
+            "4                                         NaN                       NaN   \n",
+            "\n",
+            "   tariffs_value  total_public_debt_gdp_value  trade_balance_value  \\\n",
+            "0            NaN                          NaN                  NaN   \n",
+            "1            NaN                          NaN                  NaN   \n",
+            "2            NaN                          NaN                  NaN   \n",
+            "3            NaN                          NaN                  NaN   \n",
+            "4            NaN                          NaN                  NaN   \n",
+            "\n",
+            "   trade_in_services_value  unemployment_rate_value  value  classification  \n",
+            "0                      NaN                      NaN    NaN             NaN  \n",
+            "1                      NaN                      NaN    NaN             NaN  \n",
+            "2                      NaN                      NaN    NaN             NaN  \n",
+            "3                      NaN                      NaN    NaN             NaN  \n",
+            "4                      NaN                      NaN    NaN             NaN  \n",
+            "\n",
+            "[5 rows x 49 columns]\n",
+            "['timestamp', 'low', 'high', 'open', 'close', 'volume', 'sma_30', 'rsi', 'macd', 'dia_open', 'dia_high', 'dia_low', 'dia_close', 'dia_volume', 'gld_open', 'gld_high', 'gld_low', 'gld_close', 'gld_volume', 'spy_open', 'spy_high', 'spy_low', 'spy_close', 'spy_volume', 'federal_funds_rate_daily', 'treasury_yield_daily', 'cpi_monthly', 'durables_monthly', 'nonfarm_payroll_monthly', 'real_gdp_per_capita_quarterly', 'real_gdp_quarterly', 'retail_sales_monthly', 'unemployment_monthly', 'central_bank_policy_rate_prcnt', 'domestic_credit_gdp', 'foreign_direct_investment_value', 'gdp_growth_annual_prcnt', 'inflation_rate_value', 'individuals_using_the_internet_prcnt_of_population', 'mobile_cellular_subscriptions_per_100_people', 'personal_remittances_received_prcnt_of_gdp', 'stock_market_index_value', 'tariffs_value', 'total_public_debt_gdp_value', 'trade_balance_value', 'trade_in_services_value', 'unemployment_rate_value', 'value', 'classification']\n"
+          ]
+        },
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/2333924476.py:18: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.\n",
+            "  final_df['value'] = final_df['value'].fillna(method='ffill')\n",
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/2333924476.py:19: FutureWarning: Series.fillna with 'method' is deprecated and will raise in a future version. Use obj.ffill() or obj.bfill() instead.\n",
+            "  final_df['classification'] = final_df['classification'].fillna(method='ffill')\n"
+          ]
+        }
+      ],
+      "source": [
+        "# Ensure the timestamp format is consistent across DataFrames\n",
+        "merged_df['timestamp'] = pd.to_datetime(merged_df['timestamp'])\n",
+        "df_fear_and_greed_index['timestamp'] = pd.to_datetime(df_fear_and_greed_index['timestamp'])\n",
+        "\n",
+        "# Create a merge key based on the date component of the timestamps\n",
+        "# This is because the fear and greed index data is daily\n",
+        "merged_df['date'] = merged_df['timestamp'].dt.date\n",
+        "df_fear_and_greed_index['date'] = df_fear_and_greed_index['timestamp'].dt.date\n",
+        "\n",
+        "# Merge the DataFrames using the date column as the key\n",
+        "# We'll use a left join to ensure all rows in merged_df are kept and matched with the daily data from df_fear_and_greed_index\n",
+        "final_df = pd.merge(merged_df, df_fear_and_greed_index[['date', 'value', 'classification']], on='date', how='left', suffixes=('', '_fear_greed'))\n",
+        "\n",
+        "# Now, we can drop the additional date column if it's no longer needed\n",
+        "final_df.drop('date', axis=1, inplace=True)\n",
+        "\n",
+        "# we wish to forward fill missing values for the fear and greed index data throughout each day, like this:\n",
+        "final_df['value'] = final_df['value'].fillna(method='ffill')\n",
+        "final_df['classification'] = final_df['classification'].fillna(method='ffill')\n",
+        "\n",
+        "# Display the first few rows to verify the merge\n",
+        "print(final_df.head())\n",
+        "\n",
+        "# Print the updated list of columns\n",
+        "print(list(final_df.columns))\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 16,
+      "id": "22877290-bcbd-439a-a6a2-fcc313572d4e",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "            timestamp     low    high    open   close      volume      sma_30  \\\n",
+            "0 2015-07-22 02:00:00  276.01  276.89  276.56  276.42  166.841611  279.333667   \n",
+            "1 2015-07-22 03:00:00  276.21  277.16  276.58  276.91  241.774294  279.297333   \n",
+            "2 2015-07-22 04:00:00  276.31  276.95  276.85  276.40  171.778578  279.239333   \n",
+            "3 2015-07-22 05:00:00  275.51  276.81  276.38  275.81  229.820689  279.099667   \n",
+            "4 2015-07-22 06:00:00  275.01  276.79  275.74  276.04  307.507227  278.938000   \n",
+            "\n",
+            "         rsi      macd  dia_open  ...  value  classification  id  title  url  \\\n",
+            "0  24.211767 -0.510280       NaN  ...    NaN             NaN NaN    NaN  NaN   \n",
+            "1  32.886011 -0.578152       NaN  ...    NaN             NaN NaN    NaN  NaN   \n",
+            "2  28.911993 -0.665423       NaN  ...    NaN             NaN NaN    NaN  NaN   \n",
+            "3  24.896118 -0.773281       NaN  ...    NaN             NaN NaN    NaN  NaN   \n",
+            "4  29.312518 -0.830624   149.183  ...    NaN             NaN NaN    NaN  NaN   \n",
+            "\n",
+            "   sentiment_score  sentiment_interpretation  author  timestamp_news  \\\n",
+            "0              NaN                       NaN     NaN             NaT   \n",
+            "1              NaN                       NaN     NaN             NaT   \n",
+            "2              NaN                       NaN     NaN             NaT   \n",
+            "3              NaN                       NaN     NaN             NaT   \n",
+            "4              NaN                       NaN     NaN             NaT   \n",
+            "\n",
+            "   timestamp_rounded  \n",
+            "0                NaT  \n",
+            "1                NaT  \n",
+            "2                NaT  \n",
+            "3                NaT  \n",
+            "4                NaT  \n",
+            "\n",
+            "[5 rows x 57 columns]\n",
+            "['timestamp', 'low', 'high', 'open', 'close', 'volume', 'sma_30', 'rsi', 'macd', 'dia_open', 'dia_high', 'dia_low', 'dia_close', 'dia_volume', 'gld_open', 'gld_high', 'gld_low', 'gld_close', 'gld_volume', 'spy_open', 'spy_high', 'spy_low', 'spy_close', 'spy_volume', 'federal_funds_rate_daily', 'treasury_yield_daily', 'cpi_monthly', 'durables_monthly', 'nonfarm_payroll_monthly', 'real_gdp_per_capita_quarterly', 'real_gdp_quarterly', 'retail_sales_monthly', 'unemployment_monthly', 'central_bank_policy_rate_prcnt', 'domestic_credit_gdp', 'foreign_direct_investment_value', 'gdp_growth_annual_prcnt', 'inflation_rate_value', 'individuals_using_the_internet_prcnt_of_population', 'mobile_cellular_subscriptions_per_100_people', 'personal_remittances_received_prcnt_of_gdp', 'stock_market_index_value', 'tariffs_value', 'total_public_debt_gdp_value', 'trade_balance_value', 'trade_in_services_value', 'unemployment_rate_value', 'value', 'classification', 'id', 'title', 'url', 'sentiment_score', 'sentiment_interpretation', 'author', 'timestamp_news', 'timestamp_rounded']\n"
+          ]
+        },
+        {
+          "name": "stderr",
+          "output_type": "stream",
+          "text": [
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/740921917.py:12: FutureWarning: 'H' is deprecated and will be removed in a future version, please use 'h' instead.\n",
+            "  final_df['merge_key'] = final_df['timestamp'].dt.floor('H')\n",
+            "/var/folders/jt/f0dtwp_x2w1fvk06tzwm2p200000gn/T/ipykernel_49524/740921917.py:13: FutureWarning: 'H' is deprecated and will be removed in a future version, please use 'h' instead.\n",
+            "  df_news_btc['merge_key'] = df_news_btc['timestamp_rounded'].dt.floor('H')\n"
+          ]
+        }
+      ],
+      "source": [
+        "import numpy as np\n",
+        "\n",
+        "# Ensure the timestamp formats are consistent\n",
+        "final_df['timestamp'] = pd.to_datetime(final_df['timestamp'])\n",
+        "df_news_btc['timestamp'] = pd.to_datetime(df_news_btc['timestamp'])\n",
+        "\n",
+        "# Round the timestamps in df_news_btc up to the nearest hour\n",
+        "# This will be done by adding one hour to all timestamps not exactly on the hour\n",
+        "df_news_btc['timestamp_rounded'] = df_news_btc['timestamp'].apply(lambda dt: dt + pd.Timedelta(hours=1) if dt.minute != 0 or dt.second != 0 else dt)\n",
+        "\n",
+        "# Now, extract just the date and hour for a merge key, as we're dealing with hourly data\n",
+        "final_df['merge_key'] = final_df['timestamp'].dt.floor('H')\n",
+        "df_news_btc['merge_key'] = df_news_btc['timestamp_rounded'].dt.floor('H')\n",
+        "\n",
+        "# Merge the DataFrames using the merge_key column\n",
+        "# Given that there might be multiple news articles per hour, consider how we want to handle these cases. Here, we simply merge all matching rows.\n",
+        "final_df_with_news = pd.merge(final_df, df_news_btc, left_on='merge_key', right_on='merge_key', how='left', suffixes=('', '_news'))\n",
+        "\n",
+        "# After the merge, we might have multiple rows for the same hour due to multiple news articles. Handle according to our analysis needs.\n",
+        "# For example, we could aggregate news sentiment scores by hour, or simply keep all rows to analyze the impact of each article.\n",
+        "\n",
+        "# Drop the additional merge_key column if it's no longer needed\n",
+        "final_df_with_news.drop(['merge_key'], axis=1, inplace=True)\n",
+        "\n",
+        "# Display the first few rows to verify the merge\n",
+        "print(final_df_with_news.head())\n",
+        "\n",
+        "# Print the updated list of columns\n",
+        "print(list(final_df_with_news.columns))\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "id": "c86fb752-89cb-491a-9b67-ebfa6f0013cc",
+      "metadata": {},
+      "source": [
+        "# Save file for further processingg"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 18,
+      "id": "85c964ff-9091-46ae-a682-fb30da3a48b9",
+      "metadata": {},
+      "outputs": [
+        {
+          "name": "stdout",
+          "output_type": "stream",
+          "text": [
+            "Data saved to data/raw_integrated_data.csv\n"
+          ]
+        }
+      ],
+      "source": [
+        "import os\n",
+        "\n",
+        "# Ensure the data directory exists\n",
+        "data_dir = 'data'\n",
+        "os.makedirs(data_dir, exist_ok=True)\n",
+        "\n",
+        "# Path for the CSV file within the data directory\n",
+        "csv_file_path = os.path.join(data_dir, 'raw_integrated_data.csv')\n",
+        "\n",
+        "# Save the DataFrame to CSV\n",
+        "final_df_with_news.to_csv(csv_file_path, index=False)\n",
+        "\n",
+        "print(f'Data saved to {csv_file_path}')\n"
+      ]
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python (.venv)",
+      "language": "python",
+      "name": ".venv"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.9.6"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
